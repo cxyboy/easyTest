@@ -6,6 +6,8 @@ import com.webui.framework.facade.Driver;
 import com.webui.framework.facade.UiElement;
 
 import com.webui.util.AssertUtils;
+import com.webui.util.LogUtils;
+import org.apache.log4j.Logger;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -18,6 +20,8 @@ import static com.webui.util.ParsePropertiesFile.getObject;
 
 public class DriverFactory implements Driver {
 
+
+    private static final Logger logger = Logger.getLogger(DriverFactory.class);
     private WebDriver webDriver;
     private final String rootPath = getObject("driver_path");
 
@@ -27,10 +31,10 @@ public class DriverFactory implements Driver {
 
     private String checkPath(String... path) {
         for (String f : path) {
-            System.out.println("Got path:" + f);
+            LogUtils.info(logger,"Got path:" + f);
             File file = new File(f);
             if (file.exists()) {
-                System.out.println("Exist path:" + f);
+                LogUtils.info(logger,"Exist path:" + f);
                 return f;
             }
         }

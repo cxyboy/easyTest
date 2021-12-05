@@ -1,8 +1,11 @@
 package com.webui.framework.service;
 
 
+import com.webui.exception.ExecuteTimeoutException;
+import com.webui.exception.SearchUiElementException;
 import com.webui.framework.facade.UiElement;
 import com.webui.util.ConditionWait;
+import com.webui.util.LogUtils;
 import org.openqa.selenium.WebElement;
 
 import java.util.Arrays;
@@ -83,10 +86,10 @@ public class PageElement extends ConditionWait implements UiElement {
 
     private void findElements(Dom by, int index) {
         String errLog = String.format("NoSearchElement Error: trying to %s find index %d", by, index);
-        element = conditionWait(f -> {
+        conditionWait(f -> {
             List<WebElement> elements = driver.getWebDriver().findElements(by.getBy());
-            return elements.isEmpty() ? null : elements;
-        }, errLog, timeOut, gap).get(index);
+            return elements.isEmpty() ? null : (element = elements.get(index));
+        }, errLog, timeOut, gap);
     }
 
 

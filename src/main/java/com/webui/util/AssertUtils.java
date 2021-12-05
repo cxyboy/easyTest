@@ -11,4 +11,10 @@ public class AssertUtils {
         }
     }
 
+    public static void assertEquals(Object object, Object object2, String msg) {
+        if (!object.equals(object2)) {
+            throw new ParamsException(msg);
+        }
+    }
+
 }
