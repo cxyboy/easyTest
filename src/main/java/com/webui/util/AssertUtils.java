@@ -17,4 +17,10 @@ public class AssertUtils {
         }
     }
 
+    public static void assertTrue(Boolean boole, String message){
+        if (Boolean.FALSE.equals(boole)){
+            throw new ParamsException(message);
+        }
+    }
+
 }

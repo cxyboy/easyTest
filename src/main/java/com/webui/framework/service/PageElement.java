@@ -1,44 +1,58 @@
 package com.webui.framework.service;
 
 
-import com.webui.exception.ExecuteTimeoutException;
-import com.webui.exception.SearchUiElementException;
+import com.webui.framework.facade.Driver;
 import com.webui.framework.facade.UiElement;
+import com.webui.framework.proxy.UiEasyTestProxy;
+import com.webui.util.AssertUtils;
 import com.webui.util.ConditionWait;
-import com.webui.util.LogUtils;
+import com.webui.util.ExpectedConditions;
+import org.apache.log4j.Logger;
 import org.openqa.selenium.WebElement;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
 
-public class PageElement extends ConditionWait implements UiElement {
+public class PageElement extends ConditionWait implements UiElement, InvocationHandler {
+
+
+    private static final Logger logger = Logger.getLogger(PageElement.class);
+
     private WebElement element;
-    private DriverFactory driver;
+    private Driver driver;
     private int temp;
-
-    public static class Element extends PageElement {
-
-        private Element(DriverFactory driver, Dom dom, int i) {
-            super.driver = driver;
-            super.findUiElement(dom, i);
-        }
-
-
-        public static Element build(DriverFactory driver, Dom dom, int... index) {
-
-            return new Element(driver, dom, index.length != 0 && index[0] > 0 ? index[0] : 0);
-        }
-    }
+    private Dom dom;
+    private int index;
 
     private PageElement() {
 
     }
 
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        findElements(dom, index);
+        return method.invoke(this, args);
+    }
+
+    public static class Element extends PageElement {
+
+        public Element(Driver driver, Dom dom, int i) {
+            super.driver = driver;
+            super.dom = dom;
+            super.index = i;
+        }
+    }
+
 
     @Override
     public void click() {
+        AssertUtils.assertNotNull(element, "element is null");
+        Object o = conditionWait(ExpectedConditions.isDisplayed(dom), "");
+        AssertUtils.assertTrue(true, "");
         if (isDisplayed() && isEnabled()) {
             element.click();
         }
@@ -87,21 +101,19 @@ public class PageElement extends ConditionWait implements UiElement {
     private void findElements(Dom by, int index) {
         String errLog = String.format("NoSearchElement Error: trying to %s find index %d", by, index);
         conditionWait(f -> {
-            List<WebElement> elements = driver.getWebDriver().findElements(by.getBy());
+            List<WebElement> elements = ((DriverFactory) driver).getWebDriver().findElements(by.getBy());
             return elements.isEmpty() ? null : (element = elements.get(index));
         }, errLog, timeOut, gap);
     }
 
 
     public UiElement findUiElement(Dom by) {
-        findElements(by, 0);
-        return this;
+        return (UiElement) UiEasyTestProxy.getUiElementProxy(this);
     }
 
     @Override
     public UiElement findUiElement(Dom dom, int index) {
-        findElements(dom, index);
-        return this;
+        return (UiElement) UiEasyTestProxy.getUiElementProxy(this);
     }
 
 
@@ -111,8 +123,9 @@ public class PageElement extends ConditionWait implements UiElement {
     }
 
 
-    private <V> V conditionWait(Function<? super Object, V> isTrue, Object... objects) {
+    private <V> V conditionWait(Function<? super Driver, V> isTrue, Object... objects) {
         Arrays.stream(objects).forEach(this::parseObject);
+        super.setDriver(driver);
         return super.conditionWait(isTrue);
     }
 

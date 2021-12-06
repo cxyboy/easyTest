@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 public class LogUtils {
 
-//    private static final Logger logger = Logger.getLogger(LogUtils.class);
+    //    private static final Logger logger = Logger.getLogger(LogUtils.class);
     static final String tag = "\\{}";
 
     /**
@@ -21,7 +21,6 @@ public class LogUtils {
      * @param objects 格式化对象
      */
     public static void info(Logger logger, String message, Object... objects) {
-
         logger.info(messageFormat(message, objects));
     }
 

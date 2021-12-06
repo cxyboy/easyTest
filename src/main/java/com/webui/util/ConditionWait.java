@@ -2,6 +2,7 @@ package com.webui.util;
 
 import com.webui.exception.ExecuteTimeoutException;
 import com.webui.exception.FrameWorkException;
+import com.webui.framework.facade.Driver;
 import com.webui.framework.facade.Wait;
 import org.openqa.selenium.support.ui.Sleeper;
 
@@ -10,22 +11,27 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.function.Function;
 
-public abstract class ConditionWait implements Wait<Object> {
+public abstract class ConditionWait implements Wait<Driver> {
     public long timeOut = 60L;
     public long gap = 6L;
     public String errMessage;
     private final Clock clock = Clock.systemDefaultZone();
     private final Sleeper sleeper = Sleeper.SYSTEM_SLEEPER;
 
+    public void setDriver(Driver driver) {
+        this.driver = driver;
+    }
+
+    private Driver driver;
 
     @Override
-    public <R> R conditionWait(Function<? super Object, R> isTrue) {
+    public <R> R conditionWait(Function<? super Driver, R> isTrue) {
 
         Instant endTime = clock.instant().plus(Duration.ofSeconds(timeOut));
         while (true) {
             Throwable thr = null;
             try {
-                R apply = isTrue.apply(this);
+                R apply = isTrue.apply(driver);
                 if (apply != null && (!apply.getClass().equals(Boolean.class) || apply.equals(Boolean.TRUE))) {
                     return apply;
                 }

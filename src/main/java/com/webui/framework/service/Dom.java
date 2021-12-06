@@ -2,10 +2,13 @@ package com.webui.framework.service;
 
 
 import com.webui.framework.facade.UiElement;
+import com.webui.framework.proxy.UiEasyTestProxy;
 import com.webui.util.AssertUtils;
 import org.openqa.selenium.By;
 
 import com.webui.framework.facade.Driver;
+
+import java.lang.reflect.Proxy;
 
 public class Dom {
 
@@ -73,7 +76,7 @@ public class Dom {
 
     public UiElement findUiElement(Driver driver, int... index) {
         AssertUtils.assertNotNull(driver, "没有浏览器驱动实例");
-        return PageElement.Element.build((DriverFactory) driver, this, index);
+        return (UiElement) UiEasyTestProxy.getUiElementProxy(new PageElement.Element((DriverFactory) driver, this, index.length != 0 && index[0] > 0 ? index[0] : 0));
     }
 
     public String toString() {
