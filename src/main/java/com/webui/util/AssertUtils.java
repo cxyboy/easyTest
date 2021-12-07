@@ -2,6 +2,7 @@ package com.webui.util;
 
 
 import com.webui.exception.ParamsException;
+import org.apache.commons.lang.StringUtils;
 
 public class AssertUtils {
 
@@ -17,9 +18,15 @@ public class AssertUtils {
         }
     }
 
-    public static void assertTrue(Boolean boole, String message){
-        if (Boolean.FALSE.equals(boole)){
+    public static void assertTrue(Boolean boole, String message) {
+        if (Boolean.FALSE.equals(boole)) {
             throw new ParamsException(message);
+        }
+    }
+
+    public static void assertStringIsBlank(String str, String msg) {
+        if (StringUtils.isEmpty(str)) {
+            throw new ParamsException(msg);
         }
     }
 

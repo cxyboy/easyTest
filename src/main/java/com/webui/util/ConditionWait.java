@@ -3,6 +3,7 @@ package com.webui.util;
 import com.webui.exception.ExecuteTimeoutException;
 import com.webui.exception.FrameWorkException;
 import com.webui.framework.facade.Driver;
+import com.webui.framework.facade.UiElement;
 import com.webui.framework.facade.Wait;
 import org.openqa.selenium.support.ui.Sleeper;
 
@@ -11,27 +12,36 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.function.Function;
 
-public abstract class ConditionWait implements Wait<Driver> {
-    public long timeOut = 60L;
-    public long gap = 6L;
+public class ConditionWait implements Wait<UiElement> {
+    public long timeOut;
+    public long gap;
     public String errMessage;
-    private final Clock clock = Clock.systemDefaultZone();
-    private final Sleeper sleeper = Sleeper.SYSTEM_SLEEPER;
+    private final Clock clock;
+    private final Sleeper sleeper;
+    private final UiElement u;
+    private int temp;
 
-    public void setDriver(Driver driver) {
-        this.driver = driver;
+
+    public ConditionWait(UiElement uiElement) {
+        this(uiElement, 60L, 6L);
     }
 
-    private Driver driver;
+    public ConditionWait(UiElement uiElement, long timeOut, long sleep) {
+        this.u = uiElement;
+        this.timeOut = timeOut;
+        this.gap = sleep;
+        this.clock = Clock.systemDefaultZone();
+        this.sleeper = Sleeper.SYSTEM_SLEEPER;
+    }
 
     @Override
-    public <R> R conditionWait(Function<? super Driver, R> isTrue) {
+    public <R> R conditionWait(Function<? super UiElement, R> isTrue) {
 
         Instant endTime = clock.instant().plus(Duration.ofSeconds(timeOut));
         while (true) {
             Throwable thr = null;
             try {
-                R apply = isTrue.apply(driver);
+                R apply = isTrue.apply(u);
                 if (apply != null && (!apply.getClass().equals(Boolean.class) || apply.equals(Boolean.TRUE))) {
                     return apply;
                 }
@@ -51,5 +61,23 @@ public abstract class ConditionWait implements Wait<Driver> {
         }
     }
 
+    private void parseObject(Object o) {
+        long lon = 0L;
+        switch (o.getClass().getSimpleName()) {
+            case "String":
+                errMessage = String.valueOf(o);
+                break;
+            case "long":
+                temp++;
+                lon = temp >= 2 ? gap = Long.parseLong(String.valueOf(o)) : (timeOut = Long.parseLong(String.valueOf(o)));
+                break;
+        }
 
+        if (gap > timeOut) {
+            timeOut = gap;
+            gap = lon;
+        }
+
+
+    }
 }

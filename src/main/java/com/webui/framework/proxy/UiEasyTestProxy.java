@@ -25,7 +25,7 @@ public class UiEasyTestProxy {
     }
 
     public static void main(String[] args) throws Exception {
-//        new UiEasyTestProxy().getProxy(new PageElement.Element(null, null, 0));
+//        new UiEasyTestProxy().getProxy(new WebUIElement.Element(null, null, 0));
     }
 
 }

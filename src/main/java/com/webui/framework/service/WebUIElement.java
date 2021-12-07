@@ -3,6 +3,7 @@ package com.webui.framework.service;
 
 import com.webui.framework.facade.Driver;
 import com.webui.framework.facade.UiElement;
+import com.webui.framework.facade.Wait;
 import com.webui.framework.proxy.UiEasyTestProxy;
 import com.webui.util.AssertUtils;
 import com.webui.util.ConditionWait;
@@ -17,33 +18,35 @@ import java.util.List;
 import java.util.function.Function;
 
 
-public class PageElement extends ConditionWait implements UiElement, InvocationHandler {
+public class WebUIElement implements UiElement {
 
 
-    private static final Logger logger = Logger.getLogger(PageElement.class);
+    private static final Logger logger = Logger.getLogger(WebUIElement.class);
 
     private WebElement element;
     private Driver driver;
-    private int temp;
-    private Dom dom;
-    private int index;
+    private final Wait<UiElement> uiElementWait;
 
-    private PageElement() {
-
+    private WebUIElement() {
+        System.out.println("page_element_init");
+        this.uiElementWait = new ConditionWait(this);
     }
 
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        findElements(dom, index);
-        return method.invoke(this, args);
+    public WebElement getElement() {
+        return element;
     }
 
-    public static class Element extends PageElement {
 
-        public Element(Driver driver, Dom dom, int i) {
-            super.driver = driver;
-            super.dom = dom;
-            super.index = i;
+    public static class Element {
+
+        public static InvocationHandler initUiHandler(Dom dom, int i) {
+            return ((proxy, method, args) -> {
+                WebUIElement webUIElement = new WebUIElement();
+                webUIElement.element = webUIElement.uiElementWait.conditionWait(
+                        f -> ((DriverFactory) DriverFactory.getDriverContext()).getWebDriver().findElement(dom.getBy()));
+                method.invoke(webUIElement, args);
+                return proxy;
+            });
         }
     }
 
@@ -51,11 +54,10 @@ public class PageElement extends ConditionWait implements UiElement, InvocationH
     @Override
     public void click() {
         AssertUtils.assertNotNull(element, "element is null");
-        Object o = conditionWait(ExpectedConditions.isDisplayed(dom), "");
-        AssertUtils.assertTrue(true, "");
-        if (isDisplayed() && isEnabled()) {
-            element.click();
-        }
+        AssertUtils.assertTrue(uiElementWait.conditionWait(ExpectedConditions.isDisplayed()), "uiElement is not displayed!");
+        AssertUtils.assertTrue(uiElementWait.conditionWait(ExpectedConditions.isEnabled()), "uiElement is not enable!");
+        element.click();
+
     }
 
     @Override
@@ -88,10 +90,6 @@ public class PageElement extends ConditionWait implements UiElement, InvocationH
         return false;
     }
 
-    @Override
-    public boolean isEnabled() {
-        return conditionWait(f -> element.isEnabled());
-    }
 
     @Override
     public String getText() {
@@ -103,49 +101,24 @@ public class PageElement extends ConditionWait implements UiElement, InvocationH
         conditionWait(f -> {
             List<WebElement> elements = ((DriverFactory) driver).getWebDriver().findElements(by.getBy());
             return elements.isEmpty() ? null : (element = elements.get(index));
-        }, errLog, timeOut, gap);
+        }, errLog);
     }
 
 
     public UiElement findUiElement(Dom by) {
-        return (UiElement) UiEasyTestProxy.getUiElementProxy(this);
+        return null;
     }
 
     @Override
     public UiElement findUiElement(Dom dom, int index) {
-        return (UiElement) UiEasyTestProxy.getUiElementProxy(this);
-    }
-
-
-    @Override
-    public boolean isDisplayed() {
-        return conditionWait(f -> element.isDisplayed());
+        return null;
     }
 
 
     private <V> V conditionWait(Function<? super Driver, V> isTrue, Object... objects) {
-        Arrays.stream(objects).forEach(this::parseObject);
-        super.setDriver(driver);
-        return super.conditionWait(isTrue);
+//        Arrays.stream(objects).forEach(this::parseObject);
+        return null;
     }
 
-    private void parseObject(Object o) {
-        long lon = 0L;
-        switch (o.getClass().getSimpleName()) {
-            case "String":
-                errMessage = String.valueOf(o);
-                break;
-            case "long":
-                temp++;
-                lon = temp >= 2 ? gap = Long.parseLong(String.valueOf(o)) : (timeOut = Long.parseLong(String.valueOf(o)));
-                break;
-        }
 
-        if (gap > timeOut) {
-            timeOut = gap;
-            gap = lon;
-        }
-
-
-    }
 }

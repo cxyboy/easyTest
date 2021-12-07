@@ -1,19 +1,18 @@
 package com.webui.framework.service;
 
 
-import com.webui.exception.ConfigException;
 import com.webui.framework.facade.Driver;
 import com.webui.framework.facade.UiElement;
 
+import com.webui.framework.proxy.UiEasyTestProxy;
 import com.webui.util.AssertUtils;
-import com.webui.util.LogUtils;
+import com.webui.util.Utils;
 import org.apache.log4j.Logger;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 
 
-import java.io.File;
 import java.util.Set;
 
 import static com.webui.util.ParsePropertiesFile.getObject;
@@ -25,27 +24,31 @@ public class DriverFactory implements Driver {
     private WebDriver webDriver;
     private final String rootPath = getObject("driver_path");
 
-
-    public DriverFactory() {
+    public static Driver getDriverContext() {
+        return driverContext.get();
     }
 
-    private String checkPath(String... path) {
-        for (String f : path) {
-            LogUtils.info(logger,"Got path:" + f);
-            File file = new File(f);
-            if (file.exists()) {
-                LogUtils.info(logger,"Exist path:" + f);
-                return f;
-            }
-        }
-        throw new ConfigException("driver path is notFound!");
+    private static ThreadLocal<Driver> driverContext;
 
+
+    public static void initDriverContext() {
+        driverContext = new ThreadLocal<Driver>() {
+            @Override
+            protected Driver initialValue() {
+                return new DriverFactory();
+            }
+        };
+    }
+
+
+    private DriverFactory() {
     }
 
 
     @Override
     public void createDriver(DriverClass type) {
-        String path = checkPath(rootPath + type.getCode() + (System.getenv("os").toLowerCase().contains("windows") ? ".exe" : ""));
+        String path = Utils.getCurrentPath(rootPath + type.getCode() + (System.getenv("os").toLowerCase().contains("windows") ? ".exe" : ""));
+        AssertUtils.assertNotNull(path,"找不到driver文件");
         System.setProperty(type.getKey(), path);
         switch (type) {
             case CHROME:
@@ -79,7 +82,7 @@ public class DriverFactory implements Driver {
 
     @Override
     public void close() {
-
+        webDriver.close();
     }
 
     @Override
@@ -114,13 +117,13 @@ public class DriverFactory implements Driver {
 
     @Override
     public UiElement findUiElement(Dom dom, int index) {
-        AssertUtils.assertNotNull(dom, "Dom不能是null");
-        AssertUtils.assertNotNull(index, "Dom索引值不可以是null");
-        return dom.findUiElement(this, index);
+        AssertUtils.assertNotNull(dom, "定位器Dom是null");
+        AssertUtils.assertNotNull(index, "元素索引是null");
+        return (UiElement) UiEasyTestProxy.getUiElementProxy(WebUIElement.Element.initUiHandler(dom, index));
     }
 
     public UiElement findUiElement(Dom dom) {
-        AssertUtils.assertNotNull(dom, "Dom不能是null");
-        return dom.findUiElement(this);
+        AssertUtils.assertNotNull(dom, "定位器Dom是null");
+        return (UiElement) UiEasyTestProxy.getUiElementProxy(WebUIElement.Element.initUiHandler(dom, 0));
     }
 }

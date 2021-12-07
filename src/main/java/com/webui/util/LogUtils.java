@@ -2,14 +2,10 @@ package com.webui.util;
 
 import org.apache.log4j.Logger;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class LogUtils {
 
     //    private static final Logger logger = Logger.getLogger(LogUtils.class);
-    static final String tag = "\\{}";
 
     /**
      * 运行日志
@@ -35,7 +31,7 @@ public class LogUtils {
     /**
      * 错误日志
      * using it like ’String.format()'.
-     * but placeholder is '{}'.
+     * but placeholder is '%s'.
      *
      * @param logger  log4j 实例
      * @param message 日志消息
@@ -56,19 +52,7 @@ public class LogUtils {
     }
 
     private static String messageFormat(String message, Object... objects) {
-
-        List<String> collect = Arrays.stream(message.split(tag)).collect(Collectors.toList());
-        int size = collect.size();
-        int len = objects.length;
-        String msg = String.format("格式化语句错误!%s != %s", tag, objects.length);
-        AssertUtils.assertEquals(size - 1, len, msg);
-        StringBuilder buffer = new StringBuilder();
-        for (int i = 0; i < len; i++) {
-            buffer.append(collect.get(i)).append(objects[i]);
-        }
-        buffer.append(collect.get(size - 1));
-        return buffer.toString();
+        return String.format(message, objects);
     }
-
 
 }

@@ -1,8 +1,6 @@
 package com.webui.framework.facade;
 
 
-import com.webui.framework.facade.SearchContext;
-
 public interface UiElement extends SearchContext {
 
     public void click();
@@ -26,12 +24,7 @@ public interface UiElement extends SearchContext {
     public boolean isSelected();
 
 
-    public boolean isEnabled();
-
-
     public String getText();
 
-
-    public boolean isDisplayed();
 
 }

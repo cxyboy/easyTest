@@ -6,5 +6,5 @@ import com.webui.framework.facade.UiElement;
 
 import java.util.function.Function;
 
-public interface ExpectedCondition<T> extends Function<Driver, T> {
+public interface ExpectedCondition<T> extends Function<UiElement, T> {
 }
