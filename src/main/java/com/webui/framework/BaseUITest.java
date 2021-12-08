@@ -30,16 +30,17 @@ public class BaseUITest {
         TestDeploy testDeploy = this.getClass().getAnnotation(TestDeploy.class);
         type = testDeploy.driver();
         appName = testDeploy.app();
+        System.setProperty("appName",appName);
     }
 
     @BeforeMethod
     public void printHelp(Method method) {
-        LogUtils.info(logger,"============= TestCase %s start ==============",method.getName());
+        LogUtils.info(logger, "============= TestCase %s start ==============", method.getName());
 
     }
 
     @DataProvider(name = "jsonProvider")
-    public Iterator<Object> JsonDataProvider(Method method){
+    public Iterator<Object> JsonDataProvider(Method method) {
         return new JsonDataProvider(method);
     }
 

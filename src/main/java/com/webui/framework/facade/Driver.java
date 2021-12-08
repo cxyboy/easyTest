@@ -24,11 +24,11 @@ public interface Driver extends SearchContext {
 
     String getWindowHandle();
 
-    WebDriver.TargetLocator switchTo();
+    boolean switchTo();
 
-    WebDriver.Navigation navigate();
+    Driver navigate();
 
-    WebDriver.Options manage();
+    Driver manage();
 
 
 }

@@ -7,6 +7,7 @@ import com.webui.framework.facade.UiElement;
 import com.webui.framework.proxy.UiEasyTestProxy;
 import com.webui.util.AssertUtils;
 import com.webui.util.Utils;
+import io.github.bonigarcia.wdm.WebDriverManager;
 import org.apache.log4j.Logger;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -15,14 +16,15 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 
 import java.util.Set;
 
-import static com.webui.util.ParsePropertiesFile.getObject;
+import static com.webui.util.ParsePropertiesFile.getProperty;
 
 public class DriverFactory implements Driver {
 
 
     private static final Logger logger = Logger.getLogger(DriverFactory.class);
     private WebDriver webDriver;
-    private final String rootPath = getObject("driver_path");
+    private WebDriver.TargetLocator targetLocator;
+    private WebDriver.Navigation navigation;
 
     public static Driver getDriverContext() {
         return driverContext.get();
@@ -47,9 +49,14 @@ public class DriverFactory implements Driver {
 
     @Override
     public void createDriver(DriverClass type) {
-        String path = Utils.getCurrentPath(rootPath + type.getCode() + (System.getenv("os").toLowerCase().contains("windows") ? ".exe" : ""));
-        AssertUtils.assertNotNull(path,"找不到driver文件");
-        System.setProperty(type.getKey(), path);
+        String path = Utils.getCurrentPath(getProperty("driver_path") + type.getCode() + (System.getenv("os").toLowerCase().contains("windows") ? ".exe" : ""));
+        if (path != null) {
+            System.setProperty(type.getKey(), path);
+        } else if (type.getName().equals("谷歌驱动")) {
+            WebDriverManager.chromedriver().setup();
+        } else if (type.getName().equals("火狐驱动")) {
+            WebDriverManager.firefoxdriver().setup();
+        }
         switch (type) {
             case CHROME:
                 webDriver = new ChromeDriver();
@@ -97,22 +104,30 @@ public class DriverFactory implements Driver {
 
     @Override
     public String getWindowHandle() {
-        return null;
+        return webDriver.getWindowHandle();
     }
 
     @Override
-    public WebDriver.TargetLocator switchTo() {
-        return null;
+    public boolean switchTo() {
+        try {
+            targetLocator = webDriver.switchTo();
+        } catch (Exception e) {
+            logger.error(e);
+            return false;
+        }
+        return true;
     }
 
     @Override
-    public WebDriver.Navigation navigate() {
-        return null;
+    public Driver navigate() {
+        navigation = webDriver.navigate();
+        return this;
     }
 
     @Override
-    public WebDriver.Options manage() {
-        return null;
+    public Driver manage() {
+        webDriver.manage();
+        return this;
     }
 
     @Override

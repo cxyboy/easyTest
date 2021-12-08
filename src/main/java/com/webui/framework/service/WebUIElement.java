@@ -96,17 +96,10 @@ public class WebUIElement implements UiElement {
         return element.getText();
     }
 
-    private void findElements(Dom by, int index) {
-        String errLog = String.format("NoSearchElement Error: trying to %s find index %d", by, index);
-        conditionWait(f -> {
-            List<WebElement> elements = ((DriverFactory) driver).getWebDriver().findElements(by.getBy());
-            return elements.isEmpty() ? null : (element = elements.get(index));
-        }, errLog);
-    }
-
 
     public UiElement findUiElement(Dom by) {
-        return null;
+        element = uiElementWait.conditionWait(f->element.findElement(by.getBy()));
+        return this;
     }
 
     @Override
@@ -117,6 +110,8 @@ public class WebUIElement implements UiElement {
 
     private <V> V conditionWait(Function<? super Driver, V> isTrue, Object... objects) {
 //        Arrays.stream(objects).forEach(this::parseObject);
+//        String errLog = String.format("NoSearchElement Error: trying to %s find index %d", by, index);
+
         return null;
     }
 
