@@ -24,6 +24,12 @@ public class AssertUtils {
         }
     }
 
+    public static void assertStringNotBlank(String str, String msg){
+        if (StringUtils.isNotBlank(str)){
+            //
+        }
+    }
+
     public static void assertStringIsBlank(String str, String msg) {
         if (StringUtils.isEmpty(str)) {
             throw new ParamsException(msg);
