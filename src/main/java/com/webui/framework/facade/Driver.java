@@ -2,13 +2,11 @@ package com.webui.framework.facade;
 
 
 import com.webui.framework.service.DriverClass;
-import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 
 import java.util.Set;
 
-public interface Driver extends SearchContext {
-
-    void createDriver(DriverClass type);
+public interface Driver extends SearchContext<WebElement> {
 
     void get(String url);
 

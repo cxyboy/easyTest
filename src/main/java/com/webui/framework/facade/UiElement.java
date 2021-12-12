@@ -1,7 +1,9 @@
 package com.webui.framework.facade;
 
 
-public interface UiElement extends SearchContext {
+public interface UiElement extends SearchContext<UiElement> {
+
+
 
     public void click();
 

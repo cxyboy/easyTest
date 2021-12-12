@@ -10,10 +10,14 @@ public class Utils {
 
     public static String getCurrentPath(String... path) {
         for (String f : path) {
-            LogUtils.info(logger, "Got path:%s", f);
+            LogUtils.info(logger, "Got path:", f);
+            // 避免空指针
+            if (f == null) {
+                continue;
+            }
             File file = new File(f);
             if (file.exists()) {
-                LogUtils.info(logger, "Exist path:%s", f);
+                LogUtils.info(logger, "Exist path:", f);
                 return f;
             }
         }

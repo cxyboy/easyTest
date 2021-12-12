@@ -3,26 +3,24 @@ package com.webui.framework.service;
 
 import com.webui.exception.ExecuteTimeoutException;
 import com.webui.exception.FrameWorkException;
-import com.webui.framework.facade.Driver;
 import com.webui.framework.facade.UiElement;
 import com.webui.framework.facade.Wait;
-import com.webui.framework.proxy.UiEasyTestProxy;
 import com.webui.util.AssertUtils;
+import com.webui.framework.ExpectedConditions;
 import com.webui.util.ConditionWait;
-import com.webui.util.ExpectedConditions;
 import com.webui.util.ParsePropertiesFile;
 import org.apache.log4j.Logger;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Sleeper;
 
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
+
+import static org.apache.commons.lang.time.DateUtils.MILLIS_PER_SECOND;
 
 
 public class WebUIElement implements UiElement {
@@ -32,15 +30,6 @@ public class WebUIElement implements UiElement {
 
     private WebElement element;
 
-    public Driver getDriver() {
-        return driver;
-    }
-
-    private final Driver driver;
-
-    private WebUIElement(Driver driver) {
-        this.driver = driver;
-    }
 
     public WebElement getElement() {
         return element;
@@ -49,15 +38,12 @@ public class WebUIElement implements UiElement {
 
     public static class Element {
 
-        public static InvocationHandler initUiHandler(Dom dom, int i) {
+        public static InvocationHandler initUiHandler(Dom dom) {
             return ((proxy, method, args) -> {
-                WebUIElement webUIElement = new WebUIElement(DriverFactory.getDriverContext());
+                WebUIElement webUIElement = new WebUIElement();
                 webUIElement.element = webUIElement.conditionWait(
-                        f -> {
-                            List<WebElement> elementList = ((DriverFactory) DriverFactory.getDriverContext()).getWebDriver().findElements(dom.getBy());
-                            AssertUtils.assertTrue(elementList.size() > 0, "elementList is empty!");
-                            return elementList;
-                        }, String.format("trying to %s find index %d", dom, i)).get(0);
+                        f -> DriverFactory.getDriverContext().findUiElement(dom)
+                        , String.format("trying find element to %s!", dom));
                 webUIElement.conditionWait(ExpectedConditions.isDisplayed(), "uiElement is not displayed!");
                 webUIElement.conditionWait(ExpectedConditions.isEnabled(), "uiElement is not enable!");
                 return method.invoke(webUIElement, args);
@@ -112,20 +98,21 @@ public class WebUIElement implements UiElement {
 
 
     public UiElement findUiElement(Dom by) {
-        element = (WebElement) conditionWait(ExpectedConditions.ElementVisibility(by, 0), "find element!");
+        findUiElement(by, by.getIndex());
         return this;
     }
 
     @Override
     public UiElement findUiElement(Dom dom, int index) {
-        element = conditionWait(ExpectedConditions.ElementVisibility(dom, index), "find element!");
+        element = conditionWait(ExpectedConditions.ElementVisibility(dom, index), String.format("trying find element to %s!", dom));
         return this;
     }
 
-
-    private <V> V conditionWait(Function<? super UiElement, V> isTrue, String message) {
-        final UiElement u = this;
-
+    private <T> T conditionWait(Function<? super UiElement, T> isTrue, String message) {
+        final long timeOut = Long.parseLong(ParsePropertiesFile.getProperty("timeout", "60"));
+        final long gap = Long.parseLong(ParsePropertiesFile.getProperty("gap", "5"));
+        return new ConditionWait(this,timeOut,gap).setMessage(message).conditionWait(isTrue);
+/*
         return new Wait<UiElement>() {
             final long timeOut = Long.parseLong(ParsePropertiesFile.getProperty("timeout", "60"));
             final long gap = Long.parseLong(ParsePropertiesFile.getProperty("gap", "5"));
@@ -151,7 +138,7 @@ public class WebUIElement implements UiElement {
                         throw new ExecuteTimeoutException(messages, thr);
                     }
                     try {
-                        sleeper.sleep(Duration.ofSeconds(gap));
+                        Thread.sleep(Duration.ofSeconds(gap).toMillis());
                     } catch (InterruptedException exception) {
                         Thread.currentThread().interrupt();
                         throw new FrameWorkException("currentThread declared dead!");
@@ -159,17 +146,10 @@ public class WebUIElement implements UiElement {
                 }
             }
         }.conditionWait(isTrue);
-
+ */
 
     }
 
-    static int demo(Function<String, Integer> function) {
-        return function.apply("2");
-    }
 
-    public static void main(String[] args) {
-        System.out.println(demo(integer -> 1 + 1));
-    }
-
-}//        String errLog = String.format("NoSearchElement Error: trying to %s find index %d", by, index);
+}
 

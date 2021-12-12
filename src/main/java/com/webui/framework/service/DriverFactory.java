@@ -2,14 +2,13 @@ package com.webui.framework.service;
 
 
 import com.webui.framework.facade.Driver;
-import com.webui.framework.facade.UiElement;
 
-import com.webui.framework.proxy.UiEasyTestProxy;
 import com.webui.util.AssertUtils;
 import com.webui.util.Utils;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.apache.log4j.Logger;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 
@@ -37,7 +36,9 @@ public class DriverFactory implements Driver {
         driverContext = new ThreadLocal<Driver>() {
             @Override
             protected Driver initialValue() {
-                return new DriverFactory();
+                DriverFactory factory = new DriverFactory();
+                factory.createDriver();
+                return factory;
             }
         };
     }
@@ -47,9 +48,18 @@ public class DriverFactory implements Driver {
     }
 
 
-    @Override
-    public void createDriver(DriverClass type) {
-        String path = Utils.getCurrentPath(getProperty("driver_path") + type.getCode() + (System.getenv("os").toLowerCase().contains("windows") ? ".exe" : ""));
+    public void createDriver() {
+        DriverClass type = DriverClass.CHROME;
+        String property = getProperty("driver_class");
+        for (DriverClass driverClass : DriverClass.values()) {
+            if (driverClass.getName().equals(property) || driverClass.toString().equals(property)) {
+                type = driverClass;
+            }
+        }
+
+        String path = Utils.getCurrentPath(
+                getProperty("driver_path"),
+                getProperty("driver_path") + type.getCode() + (System.getenv("os").toLowerCase().contains("windows") ? ".exe" : ""));
         if (path != null) {
             System.setProperty(type.getKey(), path);
         } else if (type.getName().equals("谷歌驱动")) {
@@ -131,14 +141,15 @@ public class DriverFactory implements Driver {
     }
 
     @Override
-    public UiElement findUiElement(Dom dom, int index) {
+    public WebElement findUiElement(Dom dom, int index) {
         AssertUtils.assertNotNull(dom, "定位器Dom是null");
         AssertUtils.assertNotNull(index, "元素索引是null");
-        return (UiElement) UiEasyTestProxy.getUiElementProxy(WebUIElement.Element.initUiHandler(dom, index));
+        return webDriver.findElements(dom.getBy()).get(index);
     }
 
-    public UiElement findUiElement(Dom dom) {
-        AssertUtils.assertNotNull(dom, "定位器Dom是null");
-        return (UiElement) UiEasyTestProxy.getUiElementProxy(WebUIElement.Element.initUiHandler(dom, 0));
+    public WebElement findUiElement(Dom dom) {
+        return findUiElement(dom, dom.getIndex());
     }
+
+
 }

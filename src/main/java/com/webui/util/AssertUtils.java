@@ -1,6 +1,7 @@
 package com.webui.util;
 
 
+import com.webui.exception.AssertException;
 import com.webui.exception.ParamsException;
 import org.apache.commons.lang.StringUtils;
 
@@ -24,15 +25,15 @@ public class AssertUtils {
         }
     }
 
-    public static void assertStringNotBlank(String str, String msg){
-        if (StringUtils.isNotBlank(str)){
-            //
+    public static void assertStringNotBlank(String str, String msg) {
+        if (StringUtils.isNotBlank(str)) {
+            throw new AssertException(msg);
         }
     }
 
     public static void assertStringIsBlank(String str, String msg) {
         if (StringUtils.isEmpty(str)) {
-            throw new ParamsException(msg);
+            throw new AssertException(msg);
         }
     }
 

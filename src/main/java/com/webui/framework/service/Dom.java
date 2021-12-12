@@ -2,109 +2,144 @@ package com.webui.framework.service;
 
 
 import com.webui.exception.ParamsException;
+import com.webui.framework.facade.UiDom;
 import com.webui.framework.facade.UiElement;
-import com.webui.framework.proxy.UiEasyTestProxy;
+import com.webui.framework.proxy.EasyTestProxy;
 import com.webui.util.AssertUtils;
 import org.openqa.selenium.By;
 
-import java.util.Arrays;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 
 public class Dom {
 
 
-    private enum Locator {
-        XPATH("xpath定位"),
-        ID("id属性定位"),
-        CSS("css选择器定位"),
-        NAME("name属性定位"),
-        CLASS("class属性定位"),
-        LINK("a标签定位");
-        private final String desc;
+    private Dom(String locType, String code, int index) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        this.locType = locType;
+        this.value = code;
+        this.index = index;
+        Method method = By.class.getMethod(locType, String.class);
+        by = (By) method.invoke(By.class, code);
 
-        Locator(String desc) {
-            this.desc = desc;
-        }
-
-        @Override
-        public String toString() {
-            return desc;
-        }
     }
 
-    private Dom(Locator type, String value) {
-        locator = type;
-        this.value = value;
-        switch (type) {
-            case XPATH:
-                setBy(By.xpath(value));
-                break;
-            case ID:
-                setBy(By.id(value));
-                break;
-            case CSS:
-                setBy(By.cssSelector(value));
-                break;
-            case LINK:
-                setBy(By.linkText(value));
-                break;
-            case NAME:
-                setBy(By.name(value));
-                break;
-        }
+
+    @Override
+    public String toString() {
+        return locType + "=" + value + "&&" + "index=" + index;
     }
 
-    private By by;
-    private final Locator locator;
+
+    private final By by;
+    private final String locType;
     private final String value;
-    private static final StringBuffer buffer;
-
-    static {
-        buffer = new StringBuffer();
-    }
-
-    private void setBy(By bys) {
-        this.by = bys;
-    }
+    private final int index;
 
     public By getBy() {
         return by;
     }
 
+    public int getIndex() {
+        return index;
+    }
+
     public static UiElement id(String using) {
-        return (UiElement) UiEasyTestProxy.getUiElementProxy(WebUIElement.Element.initUiHandler(buildUiDom("id", using), 0));
+        return id(using, 0);
+    }
+
+    public static UiElement id(String using, int index) {
+        return (UiElement) EasyTestProxy.getUiElementProxy(WebUIElement.Element.initUiHandler(buildUiDom("id", using, index)));
     }
 
     public static UiElement xpath(String using) {
-        return (UiElement) UiEasyTestProxy.getUiElementProxy(WebUIElement.Element.initUiHandler(buildUiDom("xpath", using), 0));
+        return xpath(using, 0);
 
     }
 
+    public static UiElement xpath(String using, int index) {
+        return (UiElement) EasyTestProxy.getUiElementProxy(WebUIElement.Element.initUiHandler(buildUiDom("xpath", using, index)));
+    }
+
     public static UiElement css(String using) {
-        return (UiElement) UiEasyTestProxy.getUiElementProxy(WebUIElement.Element.initUiHandler(buildUiDom("css", using), 0));
+        return css(using, 0);
+    }
+
+    public static UiElement css(String using, int index) {
+        return (UiElement) EasyTestProxy.getUiElementProxy(WebUIElement.Element.initUiHandler(buildUiDom("css", using, index)));
 
     }
 
     public static UiElement className(String using) {
-        return (UiElement) UiEasyTestProxy.getUiElementProxy(WebUIElement.Element.initUiHandler(buildUiDom("class", using), 0));
+        return className(using, 0);
+    }
+
+    public static UiElement className(String using, int index) {
+        return (UiElement) EasyTestProxy.getUiElementProxy(WebUIElement.Element.initUiHandler(buildUiDom("class", using, index)));
 
     }
 
 
-    public String toString() {
-        buffer.setLength(0);
-        return buffer.append("Dom.").append(locator).append("=").append(value).toString();
+    public static UiElement linkText(String using) {
+        return linkText(using, 0);
     }
 
-    public static Dom buildUiDom(String locType, String using) {
+    public static UiElement linkText(String using, int index) {
+        return (UiElement) EasyTestProxy.getUiElementProxy(WebUIElement.Element.initUiHandler(buildUiDom("link", using, index)));
+    }
+
+    public static Dom buildUiDom(String locType, String using, int index) {
         AssertUtils.assertStringIsBlank(locType, "定位参数属性是null");
         AssertUtils.assertStringIsBlank(using, "定位参数属性的值是null");
         try {
-            return new Dom(Locator.valueOf(locType.toUpperCase()), using);
-        } catch (RuntimeException e) {
-            String message = String.format("params:[%s] is not in %s", locType, Arrays.toString(Locator.values()));
+            return new Dom(locType, using, index);
+        } catch (Exception e) {
+            String message = String.format("定位方法列表:[id,xpath,css,name,link,class] 不包含 [%s]", locType);
             throw new ParamsException(message, e);
         }
 
     }
 
+    public static void main(String[] args) {
+        buildUiDom("od","3",1);
+    }
 }
+/*
+
+
+    XPATH("xpath定位", "xpath") {
+        public void init(){
+
+        }
+    },
+    ID("id属性定位", "id") {
+        @Override
+        public void init() {
+            setBy(By.id(super.value));
+        }
+    },
+    CSS("css选择器定位", "css") {
+        @Override
+        public void init() {
+
+        }
+    },
+    NAME("name属性定位", "name") {
+        @Override
+        public void init() {
+
+        }
+    },
+    CLASS("class属性定位", "className") {
+        @Override
+        public void init() {
+
+        }
+    },
+    LINK("a标签定位", "linkText") {
+        @Override
+        public void init() {
+            LINK.by = By.linkText(LINK.value);
+        }
+    };
+ */

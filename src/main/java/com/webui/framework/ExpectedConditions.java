@@ -1,10 +1,11 @@
-package com.webui.util;
+package com.webui.framework;
 
 import com.webui.framework.facade.Driver;
 import com.webui.framework.facade.UiElement;
 import com.webui.framework.service.Dom;
 import com.webui.framework.service.DriverFactory;
 import com.webui.framework.service.WebUIElement;
+import com.webui.util.AssertUtils;
 import org.openqa.selenium.WebElement;
 
 import java.util.List;
@@ -23,7 +24,7 @@ public class ExpectedConditions {
     public static Function<UiElement, WebElement> ElementVisibility(Dom dom, int index) {
         return uiElement -> {
             List<WebElement> elementList = ((WebUIElement) uiElement).getElement().findElements(dom.getBy());
-            AssertUtils.assertTrue(elementList.size() > 0, "");
+            AssertUtils.assertTrue(elementList.size() > 0, "no found but continue to search...");
             return elementList.get(index);
         };
     }

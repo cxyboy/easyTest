@@ -3,8 +3,8 @@ package com.webui.framework.service;
 public enum DriverClass {
 
 
-    CHROME("谷歌驱动", "chromedriver","webdriver.chrome.driver"),
-    FIREFOX("火狐驱动", "geckodriver","webdriver.firefox.driver");
+    CHROME("谷歌驱动", "chromedriver", "webdriver.chrome.driver"),
+    FIREFOX("火狐驱动", "geckodriver", "webdriver.firefox.driver");
 
     private final String name;
     private final String code;
@@ -27,4 +27,9 @@ public enum DriverClass {
     public String getKey() {
         return key;
     }
+
+    public String toString() {
+        return super.toString().toLowerCase();
+    }
+
 }
