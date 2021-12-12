@@ -2,7 +2,6 @@ package com.webui.framework.service;
 
 
 import com.webui.exception.ParamsException;
-import com.webui.framework.facade.UiDom;
 import com.webui.framework.facade.UiElement;
 import com.webui.framework.proxy.EasyTestProxy;
 import com.webui.util.AssertUtils;
