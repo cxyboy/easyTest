@@ -3,6 +3,7 @@ package com.webui.framework.service;
 
 import com.webui.exception.ExecuteTimeoutException;
 import com.webui.exception.FrameWorkException;
+import com.webui.framework.facade.Driver;
 import com.webui.framework.facade.UiElement;
 import com.webui.framework.facade.Wait;
 import com.webui.util.AssertUtils;
@@ -11,6 +12,7 @@ import com.webui.util.ConditionWait;
 import com.webui.util.ParsePropertiesFile;
 import org.apache.log4j.Logger;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.remote.RemoteWebElement;
 import org.openqa.selenium.support.ui.Sleeper;
 
 import java.lang.reflect.InvocationHandler;
@@ -21,7 +23,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 import static org.apache.commons.lang.time.DateUtils.MILLIS_PER_SECOND;
-
+import com.webui.framework.service.PageFactory.Dom;
 
 public class WebUIElement implements UiElement {
 
@@ -38,11 +40,11 @@ public class WebUIElement implements UiElement {
 
     public static class Element {
 
-        public static InvocationHandler initUiHandler(Dom dom) {
+        public static InvocationHandler initUiHandler(Driver driver, PageFactory.Dom dom) {
             return ((proxy, method, args) -> {
                 WebUIElement webUIElement = new WebUIElement();
                 webUIElement.element = webUIElement.conditionWait(
-                        f -> DriverFactory.getDriverContext().findUiElement(dom)
+                        f -> driver.findUiElement(dom)
                         , String.format("trying find element to %s!", dom));
                 webUIElement.conditionWait(ExpectedConditions.isDisplayed(), "uiElement is not displayed!");
                 webUIElement.conditionWait(ExpectedConditions.isEnabled(), "uiElement is not enable!");
@@ -111,7 +113,7 @@ public class WebUIElement implements UiElement {
     private <T> T conditionWait(Function<? super UiElement, T> isTrue, String message) {
         final long timeOut = Long.parseLong(ParsePropertiesFile.getProperty("timeout", "60"));
         final long gap = Long.parseLong(ParsePropertiesFile.getProperty("gap", "5"));
-        return new ConditionWait(this,timeOut,gap).setMessage(message).conditionWait(isTrue);
+        return new ConditionWait(this, timeOut, gap).setMessage(message).conditionWait(isTrue);
 /*
         return new Wait<UiElement>() {
             final long timeOut = Long.parseLong(ParsePropertiesFile.getProperty("timeout", "60"));

@@ -5,6 +5,7 @@ import com.webui.framework.service.DriverFactory;
 import com.webui.util.AssertUtils;
 import com.webui.util.LogUtils;
 import org.apache.log4j.Logger;
+import org.openqa.selenium.WebElement;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -19,7 +20,7 @@ public class EasyTestProxy {
 
     public static Object getUiElementProxy(InvocationHandler handler) {
         AssertUtils.assertNotNull(handler, "params Object is null!");
-        Class<?> aClass = UiElement.class;
+        Class<?> aClass = WebElement.class;
         return Proxy.newProxyInstance(aClass.getClassLoader(), new Class[]{aClass}, handler);
     }
 

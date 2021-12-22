@@ -13,17 +13,19 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.Set;
+import com.webui.framework.service.PageFactory.Dom;
 
 import static com.webui.util.ParsePropertiesFile.getProperty;
 
-public class DriverFactory implements Driver {
+public class DriverFactory implements Driver , InvocationHandler {
 
 
     private static final Logger logger = Logger.getLogger(DriverFactory.class);
     private WebDriver webDriver;
-    private WebDriver.TargetLocator targetLocator;
-    private WebDriver.Navigation navigation;
 
     public static Driver getDriverContext() {
         return driverContext.get();
@@ -33,18 +35,16 @@ public class DriverFactory implements Driver {
 
 
     public static void initDriverContext() {
-        driverContext = new ThreadLocal<Driver>() {
-            @Override
-            protected Driver initialValue() {
-                DriverFactory factory = new DriverFactory();
-                factory.createDriver();
-                return factory;
-            }
-        };
+        driverContext = ThreadLocal.withInitial(() -> {
+            DriverFactory factory = new DriverFactory();
+            factory.createDriver();
+            return factory;
+        });
     }
 
 
     private DriverFactory() {
+        logger.error("nrby7hhhhhhhh");
     }
 
 
@@ -120,7 +120,7 @@ public class DriverFactory implements Driver {
     @Override
     public boolean switchTo() {
         try {
-            targetLocator = webDriver.switchTo();
+            WebDriver.TargetLocator targetLocator = webDriver.switchTo();
         } catch (Exception e) {
             logger.error(e);
             return false;
@@ -130,7 +130,7 @@ public class DriverFactory implements Driver {
 
     @Override
     public Driver navigate() {
-        navigation = webDriver.navigate();
+        WebDriver.Navigation navigation = webDriver.navigate();
         return this;
     }
 
@@ -147,9 +147,21 @@ public class DriverFactory implements Driver {
         return webDriver.findElements(dom.getBy()).get(index);
     }
 
-    public WebElement findUiElement(Dom dom) {
+    public WebElement findUiElement(PageFactory.Dom dom) {
         return findUiElement(dom, dom.getIndex());
     }
 
+    public static void main(String[] args) {
+//        initDriverContext();
+//        getDriverContext();
+        WebDriver o = (WebDriver) Proxy.newProxyInstance(DriverFactory.class.getClassLoader(), new Class[]{WebDriver.class}, new DriverFactory());
+        o.get("http://www.baidu.com");
+    }
 
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        System.out.println("*********************");
+        WebDriverManager.chromedriver().setup();
+        return method.invoke(new ChromeDriver(),args);
+    }
 }

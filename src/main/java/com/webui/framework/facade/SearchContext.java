@@ -1,6 +1,7 @@
 package com.webui.framework.facade;
 
-import com.webui.framework.service.Dom;
+import com.webui.framework.service.PageFactory.Dom;
+//import com.webui.framework.service.PageFactory;
 
 public interface SearchContext<T> {
 

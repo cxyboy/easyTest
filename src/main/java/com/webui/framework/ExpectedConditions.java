@@ -2,7 +2,7 @@ package com.webui.framework;
 
 import com.webui.framework.facade.Driver;
 import com.webui.framework.facade.UiElement;
-import com.webui.framework.service.Dom;
+import com.webui.framework.service.PageFactory.Dom;
 import com.webui.framework.service.DriverFactory;
 import com.webui.framework.service.WebUIElement;
 import com.webui.util.AssertUtils;
